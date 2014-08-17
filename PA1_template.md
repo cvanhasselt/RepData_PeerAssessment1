@@ -31,20 +31,19 @@ The data-set is stored in a comma-separated-value (CSV) file, with a total of 17
 ## Loading and Processing the data
 
 First, the data is read from a file in order to create the *activities* data-set.
-```{r loaddata}
-activities <- read.csv("activity.csv",na.strings=c('NA'))
 
+```r
+activities <- read.csv("activity.csv",na.strings=c('NA'))
 ```
 Some further processing is necessary for analyzing the *activities* data-set, creating a new variable that combines the *date* and the *interval* variables into an R date-time type variable. Using this variable, a second new variable *clocktime* will be added, indicating the time (hour,minute,second) for an observation, to be used for plotting the activity levels over the course of a day.
 
-```{r addtimestamp}
 
+```r
 # Add a new column combining the date & interval variables into a date-time variable.
 activities$timestamp <- as.POSIXlt(sprintf("%s %04d",activities$date,activities$interval),format="%Y-%m-%d %H%M")
 
 # Add clocktime variable
 activities$clocktime <- as.ts(format(activities$timestamp, format="%H:%M:%S"),frequency=288)
-
 ```
 
 
@@ -52,14 +51,10 @@ activities$clocktime <- as.ts(format(activities$timestamp, format="%H:%M:%S"),fr
 
 A simple histogram of the total number of steps taken each day points the way to what we would expect the mean total number of steps taken each would be. 
 
-```{r graphpars, echo=FALSE}
-# Set appropriate graphi margins
-par(mar=c(4,4,4,4)) 
 
-```
 
-```{r histogram}
 
+```r
 # First, aggregate the data, using date as a factor variable
 aggActivities <- tapply(activities$steps,as.factor(activities$date),sum)
 
@@ -70,36 +65,34 @@ hist(aggActivities,
      ylab   = "Number of Days",
      ylim   = c(0,30),
      labels = TRUE)
-
 ```
+
+![plot of chunk histogram](figure/histogram.png) 
 
 The histogram shows that for the over half of days (28 days) in the recorded activity period, between 10,000 and 15,000 steps were recorded.  We would expect the mean and median number of steps to be in this range.
 
 Calculating the **mean** and **median** of the total number of steps per day based on the *aggActivities* vector is a simple matter:
-```{r centraltendency}
+
+```r
 # Calculating the mean...
 meanActivities   <- mean(aggActivities,na.rm=TRUE)
 
 # ...and the median.
 medianActivities <- median(aggActivities,na.rm=TRUE)
-
 ```
 
-Both the mean (**`r format(meanActivities,digits=5)` steps**) and the median (**`r format(medianActivities,digits=5)` steps**) fall within the expected range of values suggested by the previously created histogram.  Both values are on the lower end of the range as expected since the histogram is somewhat left-skewed, with low total activity values predominate.
+Both the mean (**10766 steps**) and the median (**10765 steps**) fall within the expected range of values suggested by the previously created histogram.  Both values are on the lower end of the range as expected since the histogram is somewhat left-skewed, with low total activity values predominate.
 
 
 ## What is the average daily activity pattern?
 
 Examining the average daily activity pattern requires aggregating the data by time-stamp value, grouping by time rather than date-time value. Activity values at the **same time of day** are combined, regardless of their date of occurrence.  Then, the time series data can be plotted.
 
-```{r graphpars2, echo=FALSE}
-par(mar=c(10,4,4,4),
-    las=2)
-
-```
 
 
-```{r plotbytime}
+
+
+```r
 # Aggregate data using the clocktime variable as a time series, calculating the mean number of steps, saving as a data.frame.
 aggActivityByTime <- tapply(activities$step,activities$clocktime,mean,na.rm=TRUE)
 
@@ -117,9 +110,12 @@ axis(1,
      labels = (names(aggActivityByTime))[seq(from=1,to=288,by=12)],
      las=2,
      cex.axis=.7) 
+```
 
+![plot of chunk plotbytime](figure/plotbytime.png) 
+
+```r
 # Find the maximum 5 minute activity level
-
 ```
 
 The plot shows activity levels rising from 6:00 AM, reaching a peak at 9:00 AM, with smaller peaks at the lunch hour (12:00 - 1:00 PM) and over the extended evening hours (5:00  - 8:00 PM).  Activity tapers off almost completely after 10:00 PM.  The daily activity cycle largely parallel normal working schedules.
@@ -134,7 +130,8 @@ The activity data-set has missing values for many intervals over the course of t
 
 The *aggActivityByTime* object has the mean for each time value. Converting this object to a *data.frame* facilitates looking up replacement values. 
 
-```{r missingvalues}
+
+```r
 # Convert aggActivityByTime to a data.frame object
 activityDF <- data.frame("time" = names(aggActivityByTime),
                          "meanActivity" = aggActivityByTime,
@@ -166,25 +163,28 @@ hist(aggImpActivities,
      ylab   = "Number of Days",
      ylim   = c(0,40),
      labels = TRUE)
+```
 
+![plot of chunk missingvalues](figure/missingvalues.png) 
+
+```r
 # Calculating the mean...
 meanImpActivities   <- mean(aggImpActivities)
 
 # ...and the median.
 medianImpActivities <- median(aggImpActivities)
-
 ```
-Both the mean (**`r format(meanImpActivities,digits=5)` steps**) and the median (**`r format(medianImpActivities,digits=5)` steps**) for the imputed data-set remain the same as in the original data-set.  However, as indicated the histogram, there are now more days that fall with the central bin of the histogram.
+Both the mean (**10766 steps**) and the median (**10766 steps**) for the imputed data-set remain the same as in the original data-set.  However, as indicated the histogram, there are now more days that fall with the central bin of the histogram.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Just as daily activity had wide range from almost no activity to high levels of activity, similar activity levels are seen over the course of a week.
 
-```{r weekends}
+
+```r
 # Add a weekend column to the activities data-set
 activities$weekend <- ((weekdays(activities$timestamp) == "Sunday") | (weekdays(activities$timestamp) == "Saturday"))
-
 ```
 (Unfortunately, this is as far as I got with the assignment, due to other commitments.)
 
